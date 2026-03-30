@@ -1,5 +1,5 @@
 ![readme badge for tests](https://github.com/ZoZo-182/todo-list-app/actions/workflows/ci.yml/badge.svg)
-## About The Project
+## Yet Another Todo List App 
 YATLA (Yet Another Todo List App) (yes, name inspo is from YAFFS) frankenstien project full of various services I wanted to integrate just to say I did it.
 
 At the end of the day it's just another todo list app. \
@@ -16,13 +16,13 @@ At the end of the day it's just another todo list app. \
 ... and now you can mess around with it in your own environment :D
 
 ## Roadmap
-- [x] Separate user creds from todo list content (not really together anyways, I just had a spot for it In the user cred db). Will be using Redis for todo list content. NO REDIS
+- [x] Separate user creds from todo list content (not really together anyways, I just had a spot for it In the user cred db). ~~Will be using Redis for todo list content.~~ NO REDIS
 - [ ] Hey, dont forget about oauth...
     - [ ] get a client for github and google going.
         - [ ] jwt no opaque
     - [ ] make your own server 
-- [ ] okay actually implement Redis
-- [ ] For some reason I have been urging myself to wait until I am 'done' to refactor but I can't take it anymore. do this asap.
+~~- [ ] okay actually implement Redis~~
+- [x] For some reason I have been urging myself to wait until I am 'done' to refactor but I can't take it anymore. do this asap.
 - [ ] user can make multiple lists 
 - [ ] these lists appear on sticky notes. pss psss come here svg.
 - [ ] let users change the color of their sticky notes but lock it behind a paywall - just as an excuse to add stripe integration lmao
