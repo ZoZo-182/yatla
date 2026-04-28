@@ -25,7 +25,7 @@ typedef enum
     ERROR_REGISTER_USER,
     ERROR_LOGIN_USER,
     NOT_FOUND,
-} user_error_t;
+} status_t;
 
 int MHD_background(int argc, char *const *argv); 
 

@@ -22,7 +22,7 @@ MunitResult test_insert_user(const MunitParameter params[], void* user_data_or_f
     sqlite3 *db = (sqlite3 *)user_data_or_fixture;
     munit_assert_not_null(db);
     
-    user_error_t result = insert_user(db, &user);
+    status_t result = insert_user(db, &user);
     munit_assert_int(SUCCESS, ==, result);
     return MUNIT_OK;
 }
@@ -31,7 +31,7 @@ MunitResult test_check_user(const MunitParameter params[], void* user_data_or_fi
     sqlite3 *db = (sqlite3 *)user_data_or_fixture;
     munit_assert_not_null(db);
     insert_user(db, &user);
-    user_error_t correct_login = check_user(db, &user); 
+    status_t correct_login = check_user(db, &user); 
     munit_assert_int(SUCCESS, ==, correct_login);
     return MUNIT_OK;
 }

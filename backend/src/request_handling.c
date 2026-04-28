@@ -15,11 +15,11 @@ extern sqlite3 *db;
 
 // forward dec
 static enum MHD_Result handle_options(struct MHD_Connection *connection, struct MHD_Response *response);
-static enum MHD_Result handle_success(struct MHD_Connection *connection, struct MHD_Response *response, user_error_t code);
-static enum MHD_Result handle_not_found(struct MHD_Connection *connection, struct MHD_Response *response, user_error_t code);
-static enum MHD_Result handle_bad_request(struct MHD_Connection *connection, struct MHD_Response *response, user_error_t code);
-static enum MHD_Result handle_internal_server_error(struct MHD_Connection *connection, struct MHD_Response *response, user_error_t code);
-static const char *user_error_str(user_error_t code);
+static enum MHD_Result handle_success(struct MHD_Connection *connection, struct MHD_Response *response, status_t code);
+static enum MHD_Result handle_not_found(struct MHD_Connection *connection, struct MHD_Response *response, status_t code);
+static enum MHD_Result handle_bad_request(struct MHD_Connection *connection, struct MHD_Response *response, status_t code);
+static enum MHD_Result handle_internal_server_error(struct MHD_Connection *connection, struct MHD_Response *response, status_t code);
+static const char *user_error_str(status_t code);
 
 // mini handlers 
 static enum MHD_Result handle_options(struct MHD_Connection *connection, struct MHD_Response *response) {
@@ -34,7 +34,7 @@ static enum MHD_Result handle_options(struct MHD_Connection *connection, struct 
   return ret;
 }
 
-static enum MHD_Result handle_success(struct MHD_Connection *connection, struct MHD_Response *response, user_error_t code) {
+static enum MHD_Result handle_success(struct MHD_Connection *connection, struct MHD_Response *response, status_t code) {
     enum MHD_Result ret;
     const char *msg = user_error_str(code);
 
@@ -51,7 +51,7 @@ static enum MHD_Result handle_success(struct MHD_Connection *connection, struct 
     return ret;
 }
 
-static enum MHD_Result handle_bad_request(struct MHD_Connection *connection, struct MHD_Response *response, user_error_t code) {
+static enum MHD_Result handle_bad_request(struct MHD_Connection *connection, struct MHD_Response *response, status_t code) {
   enum MHD_Result ret;
   const char *msg = user_error_str(code);
 
@@ -68,7 +68,7 @@ static enum MHD_Result handle_bad_request(struct MHD_Connection *connection, str
 }
 
 // why do i need enum before every MHD-Result?
-static enum MHD_Result handle_internal_server_error(struct MHD_Connection *connection, struct MHD_Response *response, user_error_t code) {
+static enum MHD_Result handle_internal_server_error(struct MHD_Connection *connection, struct MHD_Response *response, status_t code) {
   enum MHD_Result ret;
   const char *msg = user_error_str(code);
 
@@ -81,7 +81,7 @@ static enum MHD_Result handle_internal_server_error(struct MHD_Connection *conne
   return ret;
 }
 
-static enum MHD_Result handle_not_found(struct MHD_Connection *connection, struct MHD_Response *response, user_error_t code) {
+static enum MHD_Result handle_not_found(struct MHD_Connection *connection, struct MHD_Response *response, status_t code) {
   enum MHD_Result ret;
   const char *not_found = user_error_str(code);
 
@@ -96,7 +96,7 @@ static enum MHD_Result handle_not_found(struct MHD_Connection *connection, struc
  * Utilities
  */
 // there might be some codes not used. grep pls.
-static const char *user_error_str(user_error_t code) {
+static const char *user_error_str(status_t code) {
   char *str = "";
   switch (code) {
     case ERROR_INVALID_EMAIL:
@@ -208,8 +208,8 @@ handle_request(void *cls, struct MHD_Connection *connection, const char *url,
         return handle_bad_request(connection, response, ERROR_REGISTER_USER);
       }
 
-      // change user_error_t to status_t
-      user_error_t inserted_user = insert_user(db, user_info);
+      // change status_t to status_t
+      status_t inserted_user = insert_user(db, user_info);
       if (inserted_user != SUCCESS) {
         MHD_destroy_post_processor(user_info->pp);
         destroy_conn_info(user_info);
