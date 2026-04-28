@@ -221,8 +221,10 @@ handle_request(void *cls, struct MHD_Connection *connection, const char *url,
 
       return handle_success(connection, response, inserted_user);
     }
+    
   } else if (strcmp(method, "POST") == 0 && strcmp(url, "/login") == 0) { // if instead of else if?
     user_error_t login_user = check_user(db, user_info);
+  
     if (login_user != SUCCESS) {
       MHD_destroy_post_processor(user_info->pp);
       destroy_conn_info(user_info);
