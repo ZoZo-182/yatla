@@ -198,9 +198,8 @@ static enum MHD_Result handle_request(void *cls, struct MHD_Connection *connecti
       MHD_post_process(user_info->pp, upload_data, *upload_data_size);
       *upload_data_size = 0;
       return MHD_YES;
-    } else {
+    } 
       if (!user_info->first_name || !user_info->last_name || !user_info->email || !user_info->password) {
-        // i think some things need to be freed here... 
         MHD_destroy_post_processor(user_info->pp);
         destroy_conn_info(user_info);
         return handle_bad_request(connection, ERROR_REGISTER_USER);
@@ -218,22 +217,36 @@ static enum MHD_Result handle_request(void *cls, struct MHD_Connection *connecti
       destroy_conn_info(user_info);
 
       return handle_success(connection, inserted_user);
-    }
     
   } else if (strcmp(method, "POST") == 0 && strcmp(url, "/login") == 0) { // if instead of else if?
-    status_t login_user = check_user(db, user_info);
-  
-    if (login_user != SUCCESS) {
+    if (user_info->pp == NULL) {
+      user_info->pp = MHD_create_post_processor(connection, 1024, &post_iterator, user_info);
+      return MHD_YES;
+    }
+
+    if (*upload_data_size) {
+      MHD_post_process(user_info->pp, upload_data, *upload_data_size);
+      *upload_data_size = 0;
+      return MHD_YES;
+    } 
+
+    if (!user_info->email || !user_info->password) {
       MHD_destroy_post_processor(user_info->pp);
       destroy_conn_info(user_info);
-
-      return handle_internal_server_error(connection, login_user);
+      return handle_bad_request(connection, ERROR_LOGIN_USER);
     }
+
+    status_t login_user = check_user(db, user_info); 
 
     MHD_destroy_post_processor(user_info->pp);
     destroy_conn_info(user_info);
 
+    if (login_user != SUCCESS) {
+      return handle_internal_server_error(connection, login_user);
+    }
+
     return handle_success(connection, login_user);
+
   } else {
     destroy_conn_info(user_info);
     return handle_not_found(connection, NOT_FOUND);
