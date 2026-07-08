@@ -159,8 +159,6 @@ static enum MHD_Result post_iterator(void *cls, enum MHD_ValueKind kind,
 static enum MHD_Result handle_request(void *cls, struct MHD_Connection *connection, const char *url,
     const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls) {
 
-  struct MHD_Response *response;
-
   if (strcmp(method, "OPTIONS") == 0) {
     return handle_options(connection);
   }
