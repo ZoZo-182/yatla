@@ -70,7 +70,7 @@ static void request_callback(void *cls, struct MHD_Connection *connection, void 
 }
 
 static enum MHD_Result write_form_field(char **field, const char *data, uint64_t offset, size_t size) {
-  if (offset > SIZE_MAX || size > SIZE_MAX - (size_t)offset - 1) {
+  if (offset >= SIZE_MAX || size > SIZE_MAX - (size_t)offset - 1) {
      return MHD_NO;
   }
 
