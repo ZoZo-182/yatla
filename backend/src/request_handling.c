@@ -203,13 +203,22 @@ static enum MHD_Result handle_request(void *cls, struct MHD_Connection *connecti
   if (strcmp(url, "/register") == 0 && strcmp(method, "POST") == 0) {
     if (user_info->pp == NULL) {
       user_info->pp = MHD_create_post_processor(connection, 1024, &post_iterator, user_info);
+      if (user_info->pp == NULL) {
+        return handle_internal_server_error(connection, ERROR_UNKNOWN);
+      }
+
       return MHD_YES;
     }
+
     if (*upload_data_size) {
-      MHD_post_process(user_info->pp, upload_data, *upload_data_size);
+      if (MHD_post_process(user_info->pp, upload_data, *upload_data_size) != MHD_YES) {
+        return handle_bad_request(connection, ERROR_UNKNOWN);
+      }
+
       *upload_data_size = 0;
       return MHD_YES;
-    } 
+    }
+
       if (!user_info->first_name || !user_info->last_name || !user_info->email || !user_info->password) {
         return handle_bad_request(connection, ERROR_REGISTER_USER);
       }
@@ -224,14 +233,21 @@ static enum MHD_Result handle_request(void *cls, struct MHD_Connection *connecti
   } else if (strcmp(method, "POST") == 0 && strcmp(url, "/login") == 0) { // if instead of else if?
     if (user_info->pp == NULL) {
       user_info->pp = MHD_create_post_processor(connection, 1024, &post_iterator, user_info);
+      if (user_info->pp == NULL) {
+        return handle_internal_server_error(connection, ERROR_UNKNOWN);
+      }
+
       return MHD_YES;
     }
 
     if (*upload_data_size) {
-      MHD_post_process(user_info->pp, upload_data, *upload_data_size);
+      if (MHD_post_process(user_info->pp, upload_data, *upload_data_size) != MHD_YES) {
+        return handle_bad_request(connection, ERROR_UNKNOWN);
+      }
+
       *upload_data_size = 0;
       return MHD_YES;
-    } 
+    }
 
     if (!user_info->email || !user_info->password) {
       return handle_bad_request(connection, ERROR_LOGIN_USER);
