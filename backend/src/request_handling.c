@@ -24,27 +24,32 @@ static enum MHD_Result handle_not_found(struct MHD_Connection *connection, statu
 static enum MHD_Result handle_bad_request(struct MHD_Connection *connection, status_t code);
 static enum MHD_Result handle_internal_server_error(struct MHD_Connection *connection, status_t code);
 static const char *user_error_str(status_t code);
-static void add_cors_headers(struct MHD_Response *response);
+static enum MHD_Result add_cors_headers(struct MHD_Response *response);
 static enum MHD_Result send_text_response(struct MHD_Connection *connection, unsigned int status_code, const char *body);
 static void request_callback(void *cls, struct MHD_Connection *connection, void **con_cls, enum MHD_RequestTerminationCode termination_code);
 static enum MHD_Result write_form_field(char **field, const char *data, uint64_t offset, size_t size);
 
 
-static void add_cors_headers(struct MHD_Response *response) {
-  MHD_add_response_header(response, "Access-Control-Allow-Origin", "*");
-  MHD_add_response_header(response, "Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-  MHD_add_response_header(response, "Access-Control-Allow-Headers", "Content-Type, Authorization");
+static enum MHD_Result add_cors_headers(struct MHD_Response *response) {
+  if (MHD_add_response_header(response, "Access-Control-Allow-Origin", "*") != MHD_YES) return MHD_NO;
+  if (MHD_add_response_header(response, "Access-Control-Allow-Methods", "POST, GET, OPTIONS") != MHD_YES) return MHD_NO;
+  if (MHD_add_response_header(response, "Access-Control-Allow-Headers", "Content-Type, Authorization") != MHD_YES) return MHD_NO;
+
+  return MHD_YES;
 }
 
 static enum MHD_Result send_text_response(struct MHD_Connection *connection, unsigned int status_code, const char *body) {
-  struct MHD_Response *response = NULL;
-  enum MHD_Result ret;
+  struct MHD_Response *response = MHD_create_response_from_buffer(strlen(body), (void *)body, MHD_RESPMEM_PERSISTENT);
+  if (!response) {
+    return MHD_NO;
+  }
 
-  response = MHD_create_response_from_buffer(strlen(body), (void *)body, MHD_RESPMEM_PERSISTENT);
+  if (add_cors_headers(response) != MHD_YES || MHD_add_response_header(response, "Content-Type", "text/plain; charset=utf-8") != MHD_YES) {
+    MHD_destroy_response(response);
+    return MHD_NO;
+  }
 
-  add_cors_headers(response);
-
-  ret = MHD_queue_response(connection, status_code, response);
+  enum MHD_Result ret = MHD_queue_response(connection, status_code, response);
   MHD_destroy_response(response);
 
   return ret;
@@ -94,13 +99,7 @@ static enum MHD_Result write_form_field(char **field, const char *data, uint64_t
  * HANDLERS
  ***********/
 static enum MHD_Result handle_options(struct MHD_Connection *connection) {
-  enum MHD_Result ret;
-
-  struct MHD_Response *response = MHD_create_response_from_buffer(0, "", MHD_RESPMEM_PERSISTENT);
-  add_cors_headers(response);
-  ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
-  MHD_destroy_response(response);
-  return ret;
+  return send_text_response(connection, MHD_HTTP_OK, "");
 }
 
 static enum MHD_Result handle_success(struct MHD_Connection *connection, status_t code) {
