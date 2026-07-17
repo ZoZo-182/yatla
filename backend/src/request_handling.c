@@ -5,7 +5,7 @@
 #include <sqlite3.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <errno.h>
 #include <stdint.h>
 
 #ifdef TEST_BUILD
@@ -281,12 +281,11 @@ int MHD_background(int argc, char *const *argv) {
     printf("%s PORT\n", argv[0]);
     return 1;
   }
-  /* initialize PRNG */
-  srandom((unsigned int)time(NULL));
+
   d = MHD_start_daemon(MHD_USE_DEBUG, atoi(argv[1]), NULL, NULL, &handle_request,
       NULL, MHD_OPTION_CONNECTION_TIMEOUT, (unsigned int)15,
       MHD_OPTION_NOTIFY_COMPLETED, &request_callback, NULL, MHD_OPTION_END);
-  if (NULL == d)
+  if (NULL == d) 
     return 1;
   while (1) {
     max = 0;
@@ -301,8 +300,22 @@ int MHD_background(int argc, char *const *argv) {
       tvp = &tv;
     } else
       tvp = NULL;
-    select(max + 1, &rs, &ws, &es, tvp);
-    MHD_run(d);
+    int select_result = select(max + 1, &rs, &ws, &es, tvp);
+    if (select_result < 0) {
+      if (errno == EINTR) {
+        continue;
+      }
+
+      perror("select in daemon");
+      MHD_stop_daemon(d);
+      return 1;
+    }
+
+    if(MHD_run(d) != MHD_YES) {
+      fprintf(stderr, "MHD_run failed\n");
+      MHD_stop_daemon(d);
+      return 1;
+    }
   }
   MHD_stop_daemon(d);
   return 0;
